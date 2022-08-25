@@ -50,7 +50,6 @@ function parseComments(js: string, options?: any){
       if (buf.trim().length) {
       }
       buf = '/*';
-      // debugger
       comment = {
         start: i,
       }
@@ -105,11 +104,11 @@ class ParseComment {
 
   local = -1
 
-  char = ''
-
-  group = ''
+  buffer = ''
 
   tokens: any[] = []
+
+  tags: any[] = []
 
   _state = State.INIT
 
@@ -119,9 +118,9 @@ class ParseComment {
 
   set state(state) {
     if (state !== State.FIELD_VALUE && this._state === State.FIELD_VALUE) {
-      this.currentToken.content = this.group
+      this.currentToken.content = this.buffer
       this.currentToken.end = this.local
-      this.group = ''
+      this.buffer = ''
       this._state = State.INIT
     }
     this._state = state
@@ -135,10 +134,39 @@ class ParseComment {
   }
 
   pair() {
-    const tokens = this.tokens.filter(t => {
-      return ![State.NEWLINE, State.LINE_START, State.FIELD_SLICE].includes(t.type)
-    })
-    console.log(tokens)
+    const stack = [] as any[]
+    let lastToken:any
+    let currToken
+    let values: string[] = []
+
+    const tokens = this.tokens.filter(t =>[State.FIELD_KEY, State.FIELD_VALUE].includes(t.type))
+    const appendTag = () => {
+      if (lastToken) {
+        this.tags.push({
+          key: lastToken.content.replace(/^@/, ''),
+          value: values.filter(Boolean).join('\n')
+        })
+        values = []
+      }
+      stack.pop()
+    }
+
+    while(tokens.length) {
+      currToken = tokens.shift()
+      if (currToken.type === State.FIELD_KEY) {
+        appendTag()
+        stack.push(currToken)
+      } else if (lastToken) {
+        values.push(currToken.content.trim())
+      }
+      lastToken = stack[stack.length - 1]
+    }
+
+    appendTag()
+  }
+
+  get char() {
+    return this.raw[this.local]
   }
 
   get nextChar() {
@@ -155,20 +183,11 @@ class ParseComment {
 
   processLineStart() {
     if ([State.COMMENT_START, State.NEWLINE].includes(this.state)) {
-      // debugger
       const res = /^([\s\t]*?\*[\s\t]*|[\s\t]+)/.exec(this.nextRaw)
       if (res) {
-        const t = res[1]
-        this.state = State.LINE_START
-        const end = this.local + t.length - 1
-        this.tokens.push({
-          type: this.state,
-          start: this.local,
-          end,
-          content: t
-        })
-        this.local = end
-        this.process()
+        const content = res[1]
+        const end = this.local + content.length - 1
+        this.appendtoken(State.LINE_START, end, content, () => this.local = end)
         return true
       }
     }
@@ -176,49 +195,24 @@ class ParseComment {
   }
 
   process() {
-    // debugger
-    this.next()
+    this.local++
     if (this.local >= this.raw.length) return
     if (this.char === '/') {
       if (this.nextChar === '*') {
-        this.state = State.COMMENT_START
-        this.tokens.push({
-          type: this.state,
-          start: this.local,
-          end: this.local + 2,
-          content: '/*'
-        })
-        this.local++
-        this.process()
+        this.appendtoken(State.COMMENT_START, this.local, '/*', () => this.local++)
         return
       }
     } else if (this.char === '*') {
       // 结束标记
       if (this.nextChar === '/') {
-        this.state = State.COMMENT_END
-        this.tokens.push({
-          type: this.state,
-          start: this.local,
-          end: this.local + 2,
-          content: '*/'
-        })
-        this.local++
-        this.process()
+        this.appendtoken(State.COMMENT_END, this.local + 2, '*/', () => this.local++)
         return
       }
       // 一行的开头
       const res = this.processLineStart()
       if (res) return
     } else if (this.char === '\n') {
-      // debugger
-      this.state = State.NEWLINE
-      this.tokens.push({
-        type: this.state,
-        start: this.local,
-        end: this.local,
-        content: '\n'
-      })
-      this.process()
+      this.appendtoken(State.NEWLINE, this.local, this.char)
       return
     } else if (this.char === ' ' || this.char === '\t') {
       // 一行的开头
@@ -226,71 +220,58 @@ class ParseComment {
       if (res) return
 
       if (this.state === State.FIELD_KEY) {
-        const res = /^(\s*)/.exec(this.nextRaw)
+        // debugger
+        const res = /^([ \t]*?)/.exec(this.nextRaw)
         if (res) {
-          const t = res[1]
-          this.state = State.FIELD_SLICE
-          const end = this.local + t.length - 1
-          this.tokens.push({
-            type: this.state,
-            start: this.local,
-            end,
-            content: t
-          })
-          this.local = end
-          this.process()
+          const content = res[1]
+          const end = this.local + content.length - 1
+          this.appendtoken(State.FIELD_SLICE, end, content, () => this.local = end)
           return true
         }
-
       }
     } else if (this.char === '@') {
-      // debugger
       if ([State.COMMENT_START, State.NEWLINE, State.LINE_START].includes(this.state)) {
-        const res = /^(@[a-zA-Z0-9_]+)\b/.exec(this.nextRaw)
+        const res = /^(@.+?)(?:[\s]|\*\/)/.exec(this.nextRaw)
         if (res) {
-          const t = res[1]
-          this.state = State.FIELD_KEY
-          const end = this.local + t.length - 1
-          this.tokens.push({
-            type: this.state,
-            start: this.local,
-            end,
-            content: t
-          })
-          this.local = end
-          this.process()
+          const content = res[1]
+          const end = this.local + content.length - 1
+          this.appendtoken(State.FIELD_KEY, end, content, () => this.local = end)
           return
         }
       }
     }
     
-    // debugger
+    this.buffer += this.char
     if (this.state != State.FIELD_VALUE) {
-      this.state = State.FIELD_VALUE
-      this.tokens.push({
-        type: this.state,
-        start: this.local,
-      })
+      this.appendtoken(State.FIELD_VALUE)
+    } else {
+      this.process()
     }
-    this.group += this.char
+  }
 
+  appendtoken(state: string, end = this.local, content = '', before = () => {}) {
+    this.state = state
+    this.tokens.push({
+      type: state,
+      start: this.local,
+      offset: this.offset,
+      end,
+      content
+    })
+    before()
     this.process()
   }
-
-  next() {
-    this.local++
-    this.char = this.raw[this.local]
-  }
-
 }
 
 export default class Parse {
   
   raw = ''
 
-  private children: ParseComment[] = []
-
   comments: any[]
+
+  children: ParseComment[] = []
+
+  tags: any[] = []
 
   constructor(str: string) {
     this.raw = str.replace(/\r\n/gm, '\n')
@@ -298,12 +279,12 @@ export default class Parse {
   }
 
   parse() {
-    this.children = this.comments.map(t => {
-      return new ParseComment(t.content, t.start)
+    this.comments.forEach(t => {
+      const tt = new ParseComment(t.content, t.start)
+      this.children.push(tt)
+      this.tags.push(tt.tags)
     })
-    console.log('comments', this.children, this.raw.slice(this.comments[0].start, this.comments[0].end))
   }
-
 }
 
 

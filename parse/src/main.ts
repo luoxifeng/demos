@@ -10,8 +10,9 @@ app.mount('#app')
 const str = `
 123
 // @dd 123
+// /* @4*&dd 1*@ */
 /** 222
- * @dd
+ * @4*&dd   
  * @f13_pcc
  * @name Dialog工厂 @ddd ddd
 *      @img dialog.png  
@@ -44,7 +45,7 @@ const parse = new Parse(str)
 
 parse.parse()
 
-// console.log('Parse:', parse.tokens)
+console.log('Parse:', parse.tags)
 // console.log(el.innerHTML)
 
 
