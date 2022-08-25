@@ -2,7 +2,7 @@
   "name": "demos",
   "version": "0.0.0",
   "scripts": {
-    "dev": "vite",
+    "parse": "cd ./parse && npm run dev",
     "build": "vite build",
     "preview": "vite preview"
   },
