@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, viewport-fit=cover" />
+    <title>模板引擎</title>
+  </head>
+  <body>
+    <div id="app">
+      <div>
+        <h2>{{title}}</h2>
+        {{#desc}}
+          <p>{{.}}</p>
+        {{/desc}}
+        <ol>
+          {{#list}}
+            <li>
+              <h3>{{name}}的个人信息</h3>
+              <p>姓名：{{name}}</p>
+              <p>年龄：{{age}}</p>
+              <p>性别：{{sex}}</p>
+              <p>
+                爱好：
+                {{#likes}}
+                  <span>{{.}}</span>
+                {{/likes}}
+              </p>
+            </li>
+          {{/list}}
+        </ol>
+      </div>
+    </div>
+
+    <script src="./index.js"></script>
+    <script >
+      var data = {
+        title: '统计信息',
+        desc: [
+          '这是一份统计个人信息的材料', '具体人员信息如下：'
+        ],
+        list: [
+          {
+            name: '小明',
+            age: 15,
+            sex: '男',
+            likes: ['看书', '旅游']
+          },
+          {
+            name: '小李',
+            age: 14,
+            sex: '女',
+            likes: ['编程', '旅游']
+          },
+          {
+            name: '小白',
+            age: 14,
+            sex: '女',
+            likes: ['爬山', '看电影', '自驾游']
+          }
+        ]
+      }
+      const el = document.querySelector('#app')
+      const str = render(el.innerHTML, data)
+      el.innerHTML = str
+    </script>
+  </body>
+</html>

@@ -1,4 +1,3 @@
-import { parse } from '@vue/compiler-sfc';
 const State = {
   INIT: 'INIT',
 
@@ -17,7 +16,7 @@ const State = {
   COMMENT_END: 'COMMENT_END'
 }
 
-function parseComments(js: string, options?: any){
+function parseComments(js: string, options?: any) {
   options = options || {};
   js = js.replace(/\r\n/gm, '\n');
 
@@ -139,6 +138,8 @@ class ParseComment {
     let currToken
     let values: string[] = []
 
+    console.log(this.tokens)
+
     const tokens = this.tokens.filter(t =>[State.FIELD_KEY, State.FIELD_VALUE].includes(t.type))
     const appendTag = () => {
       if (lastToken) {
@@ -150,6 +151,9 @@ class ParseComment {
       }
       stack.pop()
     }
+
+    console.log(tokens)
+    
 
     while(tokens.length) {
       currToken = tokens.shift()
