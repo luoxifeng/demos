@@ -1,0 +1,32 @@
+{
+  "name": "autorouter",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite1",
+    "opt": "vite1 optimize",
+    "build": "vite build",
+    "build:qifu": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@antfu/utils": "^0.5.2",
+    "debug": "^4.3.4",
+    "deep-equal": "^2.0.5",
+    "vite-plugin-pages": "^0.25.0",
+    "vue": "^3.2.25",
+    "vue-router": "^4.0.14"
+  },
+  "devDependencies": {
+    "@types/node": "^17.0.33",
+    "@typescript-eslint/eslint-plugin": "^5.23.0",
+    "@typescript-eslint/parser": "^5.23.0",
+    "@vitejs/plugin-vue": "^2.3.0",
+    "@vitejs/plugin-vue-jsx": "^1.3.10",
+    "es-module-lexer": "^0.10.5",
+    "unixify": "^1.0.0",
+    "vite": "^2.9.8",
+    "vue-tsc": "^0.29.8"
+  }
+}

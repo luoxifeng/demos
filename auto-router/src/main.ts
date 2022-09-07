@@ -1,7 +1,7 @@
 import { createApp } from 'vue'
 import router from './router'
 import App from './App.vue'
-import Parse, { parseComments } from './parse'
+import Parse, { parseComments } from '../parse'
 const app = createApp(App)
 
 app.use(router)

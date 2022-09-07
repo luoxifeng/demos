@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div dd="ddd<>" d>
     <h2>js注释解析</h2>
   </div>
 </template>

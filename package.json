@@ -7,6 +7,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "art-template": "^4.13.2",
+    "es-module-lexer": "^1.1.1",
     "vue": "^3.2.25"
   },
   "devDependencies": {

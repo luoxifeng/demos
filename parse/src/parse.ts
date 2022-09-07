@@ -1,4 +1,3 @@
-import { parse } from '@vue/compiler-sfc';
 const State = {
   INIT: 'INIT',
 
@@ -17,87 +16,110 @@ const State = {
   COMMENT_END: 'COMMENT_END'
 }
 
-function parseComments(js: string, options?: any){
-  options = options || {};
-  js = js.replace(/\r\n/gm, '\n');
+function parseComments(js: string, options?: any) {
+  options = options || {}
+  js = js.replace(/\r\n/gm, '\n')
 
-  var comments = []
-    , skipSingleStar = options.skipSingleStar
-    , comment
-    , buf = ''
-    , ignore
-    , withinMultiline = false
-    , withinSingle = false
-    , withinString = false
-    , code
-    , linterPrefixes = options.skipPrefixes || ['jslint', 'jshint', 'eshint']
-    , skipPattern = new RegExp('^' + (options.raw ? '' : '<p>') + '('+ linterPrefixes.join('|') + ')')
-    , lineNum = 1
-    , lineNumStarting = 1
-    , parentContext
-    , withinEscapeChar
-    , currentStringQuoteChar;
-
+  var comments = [],
+    skipSingleStar = options.skipSingleStar,
+    comment,
+    buf = '',
+    ignore,
+    withinMultiline = false,
+    withinSingle = false,
+    withinString = false,
+    code,
+    linterPrefixes = options.skipPrefixes || ['jslint', 'jshint', 'eshint'],
+    skipPattern = new RegExp(
+      '^' + (options.raw ? '' : '<p>') + '(' + linterPrefixes.join('|') + ')'
+    ),
+    lineNum = 1,
+    lineNumStarting = 1,
+    parentContext,
+    withinEscapeChar,
+    currentStringQuoteChar
 
   for (var i = 0, len = js.length; i < len; ++i) {
-    withinEscapeChar = withinString && !withinEscapeChar && js[i - 1] == '\\';
+    withinEscapeChar = withinString && !withinEscapeChar && js[i - 1] == '\\'
 
     // start comment
-    if (!withinMultiline && !withinSingle && !withinString &&
-        '/' == js[i] && '*' == js[i+1] && (!skipSingleStar || js[i+2] == '*')) {
-      lineNumStarting = lineNum;
+    if (
+      !withinMultiline &&
+      !withinSingle &&
+      !withinString &&
+      '/' == js[i] &&
+      '*' == js[i + 1] &&
+      (!skipSingleStar || js[i + 2] == '*')
+    ) {
+      lineNumStarting = lineNum
       // code following the last comment
       if (buf.trim().length) {
       }
-      buf = '/*';
+      buf = '/*'
       comment = {
-        start: i,
+        start: i
       }
-      i += 2;
-      withinMultiline = true;
-      if (' ' !== js[i] && '\n' !== js[i] && '\t' !== js[i] && '!' !== js[i]) i--;
-    
-    // end comment
-    } else if (withinMultiline && !withinSingle && '*' == js[i] && '/' == js[i+1]) {
+      i += 2
+      withinMultiline = true
+      if (' ' !== js[i] && '\n' !== js[i] && '\t' !== js[i] && '!' !== js[i])
+        i--
+
+      // end comment
+    } else if (
+      withinMultiline &&
+      !withinSingle &&
+      '*' == js[i] &&
+      '/' == js[i + 1]
+    ) {
       buf += '*/'
-      i += 2;
+      i += 2
       comment.end = i
-      comment.line = lineNumStarting;
+      comment.line = lineNumStarting
       comment.content = buf
       comments.push(comment)
       withinMultiline = false
-      buf = '';
-    } else if (!withinSingle && !withinMultiline && !withinString && '/' == js[i] && '/' == js[i+1]) {
-      withinSingle = true;
-      buf += js[i];
+      buf = ''
+    } else if (
+      !withinSingle &&
+      !withinMultiline &&
+      !withinString &&
+      '/' == js[i] &&
+      '/' == js[i + 1]
+    ) {
+      withinSingle = true
+      buf += js[i]
     } else if (withinSingle && !withinMultiline && '\n' == js[i]) {
-      withinSingle = false;
-      buf += js[i];
-    } else if (!withinSingle && !withinMultiline && !withinEscapeChar && ('\'' == js[i] || '"' == js[i] || '`' == js[i])) {
-      if(withinString) {
-        if(js[i] == currentStringQuoteChar) {
-          withinString = false;
+      withinSingle = false
+      buf += js[i]
+    } else if (
+      !withinSingle &&
+      !withinMultiline &&
+      !withinEscapeChar &&
+      ("'" == js[i] || '"' == js[i] || '`' == js[i])
+    ) {
+      if (withinString) {
+        if (js[i] == currentStringQuoteChar) {
+          withinString = false
         }
       } else {
-        withinString = true;
-        currentStringQuoteChar = js[i];
+        withinString = true
+        currentStringQuoteChar = js[i]
       }
 
-      buf += js[i];
+      buf += js[i]
     } else {
-      buf += js[i];
+      buf += js[i]
     }
 
-    if('\n' == js[i]) {
-      lineNum++;
+    if ('\n' == js[i]) {
+      lineNum++
     }
   }
 
-  return comments;
-};
+  return comments
+}
 
 class ParseComment {
-
   raw = ''
 
   offset = 0
@@ -135,11 +157,15 @@ class ParseComment {
 
   pair() {
     const stack = [] as any[]
-    let lastToken:any
+    let lastToken: any
     let currToken
     let values: string[] = []
 
-    const tokens = this.tokens.filter(t =>[State.FIELD_KEY, State.FIELD_VALUE].includes(t.type))
+    console.log(this.tokens)
+
+    const tokens = this.tokens.filter(t =>
+      [State.FIELD_KEY, State.FIELD_VALUE].includes(t.type)
+    )
     const appendTag = () => {
       if (lastToken) {
         this.tags.push({
@@ -151,7 +177,9 @@ class ParseComment {
       stack.pop()
     }
 
-    while(tokens.length) {
+    console.log(tokens)
+
+    while (tokens.length) {
       currToken = tokens.shift()
       if (currToken.type === State.FIELD_KEY) {
         appendTag()
@@ -187,7 +215,12 @@ class ParseComment {
       if (res) {
         const content = res[1]
         const end = this.local + content.length - 1
-        this.appendtoken(State.LINE_START, end, content, () => this.local = end)
+        this.appendtoken(
+          State.LINE_START,
+          end,
+          content,
+          () => (this.local = end)
+        )
         return true
       }
     }
@@ -199,13 +232,23 @@ class ParseComment {
     if (this.local >= this.raw.length) return
     if (this.char === '/') {
       if (this.nextChar === '*') {
-        this.appendtoken(State.COMMENT_START, this.local, '/*', () => this.local++)
+        this.appendtoken(
+          State.COMMENT_START,
+          this.local,
+          '/*',
+          () => this.local++
+        )
         return
       }
     } else if (this.char === '*') {
       // 结束标记
       if (this.nextChar === '/') {
-        this.appendtoken(State.COMMENT_END, this.local + 2, '*/', () => this.local++)
+        this.appendtoken(
+          State.COMMENT_END,
+          this.local + 2,
+          '*/',
+          () => this.local++
+        )
         return
       }
       // 一行的开头
@@ -225,22 +268,36 @@ class ParseComment {
         if (res) {
           const content = res[1]
           const end = this.local + content.length - 1
-          this.appendtoken(State.FIELD_SLICE, end, content, () => this.local = end)
+          this.appendtoken(
+            State.FIELD_SLICE,
+            end,
+            content,
+            () => (this.local = end)
+          )
           return true
         }
       }
     } else if (this.char === '@') {
-      if ([State.COMMENT_START, State.NEWLINE, State.LINE_START].includes(this.state)) {
-        const res = /^(@.+?)(?:[\s]|\*\/)/.exec(this.nextRaw)
+      if (
+        [State.COMMENT_START, State.NEWLINE, State.LINE_START].includes(
+          this.state
+        )
+      ) {
+        const res = /^(@.+?)(?:\s|\*\/)/.exec(this.nextRaw)
         if (res) {
           const content = res[1]
           const end = this.local + content.length - 1
-          this.appendtoken(State.FIELD_KEY, end, content, () => this.local = end)
+          this.appendtoken(
+            State.FIELD_KEY,
+            end,
+            content,
+            () => (this.local = end)
+          )
           return
         }
       }
     }
-    
+
     this.buffer += this.char
     if (this.state != State.FIELD_VALUE) {
       this.appendtoken(State.FIELD_VALUE)
@@ -249,7 +306,12 @@ class ParseComment {
     }
   }
 
-  appendtoken(state: string, end = this.local, content = '', before = () => {}) {
+  appendtoken(
+    state: string,
+    end = this.local,
+    content = '',
+    before = () => {}
+  ) {
     this.state = state
     this.tokens.push({
       type: state,
@@ -264,7 +326,6 @@ class ParseComment {
 }
 
 export default class Parse {
-  
   raw = ''
 
   comments: any[]
@@ -286,6 +347,3 @@ export default class Parse {
     })
   }
 }
-
-
-

@@ -1,0 +1,14 @@
+<div>
+    <div>{{ name }}</div>
+    {% if (show) { %}
+        <div>{{ name + 'IF' }}</div>
+    {% } else { %}
+        <div>{{ name + 'ELSE' }}</div>
+    {% } %}
+
+    <ul>
+        {% list.forEach(t => { %}
+            <li>{{ t.label }}-{{t.value}}</li>
+        {% })  %}
+    </ul>
+</div>
