@@ -6,7 +6,12 @@ import path from 'path'
 export default defineConfig({
   base: './',
   plugins: [
-    vue()
+    vue(),
+    {
+      resolveId(id, importor, opt) {
+        debugger
+      }
+    }
   ],
   // resolve: {
   //   alias: [

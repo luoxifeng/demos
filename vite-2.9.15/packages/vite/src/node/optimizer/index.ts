@@ -182,6 +182,10 @@ export async function optimizeDeps(
 ): Promise<DepOptimizationMetadata> {
   const log = asCommand ? config.logger.info : debug
 
+  /**
+   * 加载预构建的信息，内部会根据多个维度生成hash进行对比
+   * 此函数如果有返回值说明之前的预构建依旧可用，反之亦然
+   */
   const cachedMetadata = loadCachedDepOptimizationMetadata(
     config,
     force,
@@ -190,7 +194,12 @@ export async function optimizeDeps(
   if (cachedMetadata) {
     return cachedMetadata
   }
+  /**
+   * 开始扫描，进行依赖收集，得到一个依赖的映射表，非树形结构
+   * 此步骤只会扫描得到依赖并不会对依赖进行构建
+   */
   const depsInfo = await discoverProjectDependencies(config)
+
 
   const depsString = depsLogString(Object.keys(depsInfo))
   log(colors.green(`Optimizing dependencies:\n  ${depsString}`))
