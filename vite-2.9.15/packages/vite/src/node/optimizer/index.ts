@@ -194,6 +194,7 @@ export async function optimizeDeps(
   if (cachedMetadata) {
     return cachedMetadata
   }
+
   /**
    * 开始扫描，进行依赖收集，得到一个依赖的映射表，非树形结构
    * 此步骤只会扫描得到依赖并不会对依赖进行构建
@@ -287,6 +288,9 @@ export async function discoverProjectDependencies(
   config: ResolvedConfig,
   timestamp?: string
 ): Promise<Record<string, OptimizedDepInfo>> {
+  /**
+   * 查找需要预构建的依赖是通过scanImport
+   */
   const { deps, missing } = await scanImports(config)
 
   const missingIds = Object.keys(missing)

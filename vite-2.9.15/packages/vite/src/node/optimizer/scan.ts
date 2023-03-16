@@ -54,6 +54,10 @@ export async function scanImports(config: ResolvedConfig): Promise<{
 
   let entries: string[] = []
 
+  /**
+   * 从此处应该可以看出，如文档所述，优先级如下
+   * optimizeDeps.entries > build.rollupOptions?.input > html
+   */
   const explicitEntryPatterns = config.optimizeDeps.entries
   const buildInput = config.build.rollupOptions?.input
 
@@ -99,7 +103,13 @@ export async function scanImports(config: ResolvedConfig): Promise<{
 
   const deps: Record<string, string> = {}
   const missing: Record<string, string> = {}
+  /**
+   * 创建插件上下文
+   */
   const container = await createPluginContainer(config)
+  /**
+   * 创建esbuild扫描插件
+   */
   const plugin = esbuildScanPlugin(config, container, deps, missing, entries)
 
   const { plugins = [], ...esbuildOptions } =

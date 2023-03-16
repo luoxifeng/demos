@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite1",
-    "opt": "vite1 optimize",
+    "opt": "vite1 optimize --force",
     "build": "vite build",
     "build:qifu": "vite build",
     "preview": "vite preview"

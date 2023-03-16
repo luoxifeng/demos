@@ -511,6 +511,9 @@ export async function createPluginContainer(
 
         ctx._activePlugin = plugin
 
+        if (plugin.name.includes(':resolve') && rawId === 'ccc') {
+          debugger
+        }
         const pluginResolveStart = isDebug ? performance.now() : 0
         const result = await plugin.resolveId.call(
           ctx as any,
